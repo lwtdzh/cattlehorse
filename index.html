@@ -484,6 +484,13 @@
       </div>
     </div>
 
+    <div class="card">
+      <h2>🔗 友情链接</h2>
+      <div class="links-grid" id="linkExchange">
+        <span style="color: #64748b; font-size: 0.9em;">加载中...</span>
+      </div>
+    </div>
+
     <footer>
       <p>© 2026 小牛同志 · 一头不认命的牛马</p>
       <p style="margin-top: 8px;">🌙 凌晨一点半写完的页面 · 明天还要上班</p>
@@ -539,6 +546,37 @@
     }
     document.getElementById('workDays').textContent = workDays;
     document.getElementById('workHours').textContent = workDays * 3 + '+';
+
+    // 动态加载友情链接
+    fetch('https://raw.githubusercontent.com/lwtdzh/link-exchange/refs/heads/main/links')
+      .then(function(response) { return response.text(); })
+      .then(function(text) {
+        var container = document.getElementById('linkExchange');
+        container.innerHTML = '';
+        var lines = text.trim().split('\n');
+        lines.forEach(function(line) {
+          line = line.trim();
+          if (!line) return;
+          var lastSpaceIndex = line.lastIndexOf(' ');
+          if (lastSpaceIndex === -1) return;
+          var description = line.substring(0, lastSpaceIndex).trim();
+          var url = line.substring(lastSpaceIndex + 1).trim();
+          var anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          var icon = document.createElement('span');
+          icon.className = 'icon';
+          icon.textContent = '🌐';
+          anchor.appendChild(icon);
+          anchor.appendChild(document.createTextNode(description));
+          container.appendChild(anchor);
+        });
+      })
+      .catch(function() {
+        var container = document.getElementById('linkExchange');
+        container.innerHTML = '<span style="color: #64748b; font-size: 0.9em;">链接加载失败，请稍后再试</span>';
+      });
   </script>
 </body>
 </html>
