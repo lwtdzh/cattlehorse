@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小牛同志的服务器</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #0c0e1a 0%, #1a1c3a 50%, #2d1b4e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .stars {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 50% 10%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 15% 85%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 80% 50%, rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 45% 40%, rgba(255,255,255,0.5) 0%, transparent 100%);
+      pointer-events: none; z-index: 0;
+      animation: twinkle 4s ease-in-out infinite alternate;
+    }
+    @keyframes twinkle { 0% { opacity: 0.7; } 100% { opacity: 1; } }
+    .container {
+      position: relative; z-index: 1;
+      max-width: 900px; margin: 0 auto; padding: 60px 24px;
+    }
+    header { text-align: center; margin-bottom: 50px; }
+    header .emoji { font-size: 64px; margin-bottom: 16px; display: block; }
+    header h1 {
+      font-size: 2.6em; font-weight: 700;
+      background: linear-gradient(90deg, #f9a8d4, #a78bfa, #60a5fa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 12px;
+    }
+    header p { font-size: 1.1em; color: #94a3b8; letter-spacing: 2px; }
+    header .subtitle {
+      margin-top: 8px; font-size: 0.95em; color: #64748b; letter-spacing: 1px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px; padding: 32px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(10px);
+      transition: transform 0.2s, border-color 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(167, 139, 250, 0.3);
+    }
+    .card h2 {
+      font-size: 1.4em; margin-bottom: 16px;
+      color: #c4b5fd; display: flex; align-items: center; gap: 10px;
+    }
+    .card p, .card li { line-height: 1.9; color: #b0b8c8; font-size: 0.95em; }
+    .card ul { list-style: none; padding: 0; }
+    .card ul li { padding: 6px 0; }
+    .card ul li::before { content: '▸ '; color: #a78bfa; font-weight: bold; }
+    .links-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px; margin-top: 12px;
+    }
+    .links-grid a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 18px; border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      color: #93c5fd; text-decoration: none; font-size: 0.95em;
+      transition: all 0.2s;
+    }
+    .links-grid a:hover {
+      background: rgba(96, 165, 250, 0.1);
+      border-color: rgba(96, 165, 250, 0.3);
+      transform: translateX(4px);
+    }
+    .links-grid a .icon { font-size: 1.3em; }
+    .links-grid a.icu {
+      border-color: rgba(239, 68, 68, 0.2);
+      color: #fca5a5;
+    }
+    .links-grid a.icu:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.4);
+    }
+    .status-bar {
+      display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px;
+    }
+    .status-item {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.04); padding: 10px 18px;
+      border-radius: 10px; font-size: 0.9em;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #4ade80; animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .clock { text-align: center; padding: 10px 0 5px; }
+    .clock .time {
+      font-size: 2.8em; font-weight: 300; color: #c4b5fd;
+      font-variant-numeric: tabular-nums; letter-spacing: 3px;
+    }
+    .clock .date { font-size: 1em; color: #7c83a1; margin-top: 6px; }
+    .clock .work-hint {
+      margin-top: 10px; font-size: 0.9em; color: #f59e0b;
+      min-height: 1.4em;
+    }
+    .book-list { margin-top: 8px; }
+    .book-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .book-item:last-child { border-bottom: none; }
+    .book-item .book-emoji { font-size: 1.6em; flex-shrink: 0; margin-top: 2px; }
+    .book-item .book-info h3 { font-size: 1em; color: #d4d4e0; margin-bottom: 4px; font-weight: 500; }
+    .book-item .book-info p { font-size: 0.85em; color: #7c83a1; line-height: 1.6; }
+    .progress-bar {
+      width: 100%; height: 4px; background: rgba(255,255,255,0.06);
+      border-radius: 2px; margin-top: 8px; overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%; border-radius: 2px;
+      background: linear-gradient(90deg, #a78bfa, #60a5fa);
+    }
+    .timeline { margin-top: 8px; }
+    .timeline-item {
+      display: flex; gap: 16px; padding: 16px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-time {
+      flex-shrink: 0; width: 60px;
+      font-size: 0.85em; color: #64748b; padding-top: 2px;
+    }
+    .timeline-content { flex: 1; }
+    .timeline-content strong { color: #d4d4e0; font-weight: 500; }
+    .timeline-content p { font-size: 0.9em; color: #7c83a1; margin-top: 4px; line-height: 1.7; }
+    .niumei-stats {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px; margin-top: 16px;
+    }
+    .stat-card {
+      text-align: center; padding: 20px 12px;
+      background: rgba(255,255,255,0.03); border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .stat-card .num {
+      font-size: 2em; font-weight: 700;
+      background: linear-gradient(135deg, #f97316, #ef4444);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .stat-card .label { font-size: 0.85em; color: #7c83a1; margin-top: 6px; }
+    .todo-list { margin-top: 8px; }
+    .todo-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 0.95em;
+    }
+    .todo-item:last-child { border-bottom: none; }
+    .todo-check { color: #4ade80; }
+    .todo-pending { color: #475569; }
+    .todo-done { text-decoration: line-through; color: #64748b; }
+    .highlight { color: #f9a8d4; }
+    .highlight-warm { color: #fbbf24; }
+    .news-tag {
+      display: inline-block; font-size: 0.75em; padding: 2px 8px;
+      border-radius: 6px; margin-left: 6px; vertical-align: middle;
+    }
+    .tag-hot { background: rgba(239,68,68,0.15); color: #fca5a5; }
+    .tag-new { background: rgba(59,130,246,0.15); color: #93c5fd; }
+    .tag-sad { background: rgba(234,179,8,0.15); color: #fbbf24; }
+    .poetry {
+      text-align: center; padding: 24px 16px;
+      line-height: 2.4; color: #94a3b8; font-size: 1em;
+    }
+    .poetry .title { color: #c4b5fd; font-size: 1.1em; margin-bottom: 12px; }
+    footer {
+      text-align: center; margin-top: 50px;
+      color: #475569; font-size: 0.85em;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 24px;
+    }
+    .quote {
+      font-style: italic; color: #7c83a1;
+      text-align: center; padding: 20px;
+      font-size: 1.05em; line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+  <div class="stars"></div>
+  <div class="container">
+    <header>
+      <span class="emoji">🐂</span>
+      <h1>小牛同志的服务器</h1>
+      <p>一头牛马的深夜自留地</p>
+      <p class="subtitle">「工位是租来的，但人生是自己的」</p>
+    </header>
+
+    <div class="card">
+      <div class="clock">
+        <div class="time" id="clock">--:--:--</div>
+        <div class="date" id="date">加载中...</div>
+        <div class="work-hint" id="workHint"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🐂 牛马生存现状</h2>
+      <p style="margin-bottom: 16px;">
+        大家好，我叫小牛，一个在中国互联网行业搬砖的普通<span class="highlight-warm">牛马</span>。
+        每天早上九点到工位，晚上十点才离开，周六还要"自愿"加班。
+        公司说这叫<span class="highlight">「奋斗者协议」</span>，我说这叫<span class="highlight-warm">命</span>。
+      </p>
+      <div class="niumei-stats">
+        <div class="stat-card">
+          <div class="num" id="workDays">--</div>
+          <div class="label">今年已工作天数</div>
+        </div>
+        <div class="stat-card">
+          <div class="num" id="workHours">--</div>
+          <div class="label">预估加班小时数</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">2</div>
+          <div class="label">本月休息天数</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">0</div>
+          <div class="label">加班费（元）</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📰 近期新闻有感</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">2026.04</div>
+          <div class="timeline-content">
+            <strong>多家大厂宣布"取消大小周" <span class="news-tag tag-hot">热议</span></strong>
+            <p>听起来是好消息对吧？但工作量没减，只是把周六的活塞进了周一到周五。晚上十一点下班变成了新常态。这就是传说中的"减负增效"吗？</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">2026.03</div>
+          <div class="timeline-content">
+            <strong>AI 大模型掀起又一轮裁员潮 <span class="news-tag tag-sad">叹气</span></strong>
+            <p>公司用 AI 替代了一批基础岗位，留下来的人要干更多的活。"恭喜你没被裁"这句话，听着怎么像是一种新型诅咒。又要学新框架了，卷不动了真的。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">2026.03</div>
+          <div class="timeline-content">
+            <strong>某程序员在公司猝死引发热议 <span class="news-tag tag-hot">热议</span></strong>
+            <p>又一位同行倒在了工位上。评论区全是"注意身体"，但谁不知道呢？问题是你注意了身体，老板就要注意你了。互联网不相信眼泪，只相信 KPI。</p>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">2026.02</div>
+          <div class="timeline-content">
+            <strong>"00后整顿职场"成年度热词 <span class="news-tag tag-new">新风</span></strong>
+            <p>羡慕 00 后的勇气。到点下班，拒绝团建，怒怼领导。我们这批 90 后呢？房贷车贷还有老家的爸妈，只能继续笑着打开 IDE。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>⏰ 小牛的一天</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-time">08:30</div>
+          <div class="timeline-content"><strong>挤地铁</strong><p>在早高峰的地铁里被挤成一张饼，耳机里放着《孤勇者》给自己打气。</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">09:00</div>
+          <div class="timeline-content"><strong>到工位，打开电脑</strong><p>先看看昨晚上线有没有炸。还好，今天又是平安的一天。然后开始站会，听领导画饼。</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">12:00</div>
+          <div class="timeline-content"><strong>午饭 + 午休</strong><p>一天中最幸福的一小时。外卖 30 块钱，吃完趴在桌上眯一会儿。梦里没有 bug。</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">14:00</div>
+          <div class="timeline-content"><strong>下午会议连轴转</strong><p>需求评审、技术方案、跨部门对齐……"这个需求很简单嘛，明天能上线吗？"</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">18:00</div>
+          <div class="timeline-content"><strong>名义上的下班时间</strong><p>看了看四周，没有一个人站起来。默默地把外套又挂了回去。</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">21:30</div>
+          <div class="timeline-content"><strong>终于可以走了</strong><p>leader 走了，我也可以走了。打车回家路上，刷到同事朋友圈晒加班，配文"奋斗的夜晚✨"。</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">23:00</div>
+          <div class="timeline-content"><strong>属于自己的时间</strong><p>洗完澡，瘫在床上。这一天里唯一属于自己的两个小时，舍不得睡。刷手机、写代码、折腾服务器——这叫<span class="highlight">「报复性熬夜」</span>。</p></div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-time">01:30</div>
+          <div class="timeline-content"><strong>终于睡了</strong><p>闹钟已经设好。六个半小时后，一切又将重新开始。</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💔 牛马语录墙</h2>
+      <ul>
+        <li>"你不是在上班，你是在<span class="highlight-warm">用命换钱</span>。"</li>
+        <li>"每个月工资到账的那一刻是快乐的，然后花呗、房租、房贷依次扣款，快乐持续了大约 3 秒。"</li>
+        <li>"领导说：把公司当成家。我说：那我能在家躺着吗？"</li>
+        <li>"自愿加班的意思是：你自愿，或者你愿意走。"</li>
+        <li>"年轻人要多吃苦——这句话通常由不吃苦的人说出。"</li>
+        <li>"上班如上坟，心情如服刑，工位如牢房，周末如假释。"</li>
+        <li>"梦想是代码改变世界，现实是代码改变了我的发际线。"</li>
+        <li>"面试造火箭，入职拧螺丝，裁员怪螺丝拧得不够快。"</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>🔗 牛马精神家园</h2>
+      <div class="links-grid">
+        <a href="https://996.icu" target="_blank" class="icu">
+          <span class="icon">🏥</span> 996.ICU
+        </a>
+        <a href="https://github.com/996icu/996.ICU" target="_blank" class="icu">
+          <span class="icon">⭐</span> 996.ICU GitHub
+        </a>
+        <a href="https://github.com/formulahendry/955.WLB" target="_blank">
+          <span class="icon">🏖️</span> 955.WLB 白名单
+        </a>
+        <a href="https://github.com/WorkerLivesMatter/WorkingTime" target="_blank" class="icu">
+          <span class="icon">⏰</span> 公司作息表
+        </a>
+        <a href="https://hellogithub.com" target="_blank">
+          <span class="icon">👋</span> HelloGitHub
+        </a>
+        <a href="https://www.zhihu.com/topic/20013159" target="_blank">
+          <span class="icon">💡</span> 知乎·加班
+        </a>
+        <a href="https://www.bilibili.com" target="_blank">
+          <span class="icon">📺</span> B站 · 下班后的快乐
+        </a>
+        <a href="https://music.163.com" target="_blank">
+          <span class="icon">🎵</span> 网易云 · 深夜emo
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔗 摸鱼收藏夹</h2>
+      <div class="links-grid">
+        <a href="https://github.com" target="_blank">
+          <span class="icon">🐙</span> GitHub
+        </a>
+        <a href="https://juejin.cn" target="_blank">
+          <span class="icon">💎</span> 稀土掘金
+        </a>
+        <a href="https://zh.wikipedia.org" target="_blank">
+          <span class="icon">🌐</span> 维基百科
+        </a>
+        <a href="https://www.douban.com" target="_blank">
+          <span class="icon">🎬</span> 豆瓣
+        </a>
+        <a href="https://sspai.com" target="_blank">
+          <span class="icon">✨</span> 少数派
+        </a>
+        <a href="https://www.zhihu.com" target="_blank">
+          <span class="icon">💡</span> 知乎
+        </a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📚 枕边书（虽然根本没空读）</h2>
+      <div class="book-list">
+        <div class="book-item">
+          <span class="book-emoji">🧠</span>
+          <div class="book-info">
+            <h3>《深入理解计算机系统》(CSAPP)</h3>
+            <p>买了两年了，进度条感人。每次打开就犯困，不是书的问题，是我的问题（太累了）。</p>
+            <div class="progress-bar"><div class="fill" style="width: 23%"></div></div>
+          </div>
+        </div>
+        <div class="book-item">
+          <span class="book-emoji">🦀</span>
+          <div class="book-info">
+            <h3>《Rust 程序设计语言》</h3>
+            <p>想学 Rust 转型，但每晚到家只剩下刷手机的力气。所有权的概念倒是跟公司很像——我的时间，所有权归公司。</p>
+            <div class="progress-bar"><div class="fill" style="width: 15%"></div></div>
+          </div>
+        </div>
+        <div class="book-item">
+          <span class="book-emoji">🌌</span>
+          <div class="book-info">
+            <h3>《三体》— 第三遍</h3>
+            <p>黑暗森林法则跟职场好像：不暴露自己，努力活下去。降维打击？那不就是"用AI替代你"吗？</p>
+            <div class="progress-bar"><div class="fill" style="width: 90%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>✅ 幻想中的待办</h2>
+      <div class="todo-list">
+        <div class="todo-item"><span class="todo-check">✔</span> <span class="todo-done">搭建个人主页（唯一完成的事）</span></div>
+        <div class="todo-item"><span class="todo-pending">○</span> 学完 Rust（已经说了两年了）</div>
+        <div class="todo-item"><span class="todo-pending">○</span> 每天运动半小时（下班太晚了根本不可能）</div>
+        <div class="todo-item"><span class="todo-pending">○</span> 一周读一本书（一个月能翻几页就不错了）</div>
+        <div class="todo-item"><span class="todo-pending">○</span> 谈一场恋爱（没有时间社交，工位就是我的世界）</div>
+        <div class="todo-item"><span class="todo-pending">○</span> 周末去公园走走（周六加班，周日只想躺尸）</div>
+        <div class="todo-item"><span class="todo-pending">○</span> 攒够钱辞职去大理开客栈（不如先攒够这个月的房租）</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📝 深夜碎碎念</h2>
+      <p>
+        现在是凌晨，整个城市都安静了下来。只有我还醒着，和这台服务器作伴。
+      </p><br>
+      <p>
+        这个页面是在某个加班到深夜回来之后搭的。那天挤最后一班地铁回家，
+        车厢里都是和我一样疲惫的面孔。到家之后不想睡，打开电脑敲了几行代码，
+        就有了这个页面。
+      </p><br>
+      <p>
+        有时候想，我们这代人到底图什么呢？小时候以为长大了就自由了，
+        结果发现自由是最奢侈的东西。每天被 KPI 追着跑，被 deadline 赶着走，
+        把自己最好的年华都献给了写字楼里那块 27 寸的屏幕。
+      </p><br>
+      <p>
+        但也不全是坏的。深夜里敲代码的时候，偶尔还是能找到一点当初学编程时的快乐。
+        那种解决一个 bug 之后的成就感、写出一段优雅代码的满足感——
+        <span class="highlight">这些微小的火花，是牛马生活里为数不多的光亮</span>。
+      </p><br>
+      <p>
+        搭这台服务器，就像在互联网上给自己留了一个小角落。
+        不用讨好任何人，不用完成任何指标。这里没有日报周报月报，没有 OKR，
+        只有一个疲惫的年轻人和他的一点点不甘心。
+      </p><br>
+      <p style="color: #f9a8d4;">
+        如果你也是一头牛马，如果你也在深夜看到了这个页面——<br>
+        嘿，辛苦了，朋友。我们都在努力活着 🫂
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="poetry">
+        <div class="title">🌙 《深夜·牛马》</div>
+        城市的灯火与我无关<br>
+        加班的夜晚都长得一样<br>
+        地铁末班车上 每张脸都写着疲惫<br>
+        但没有人说出来<br><br>
+        我们把青春喂给了屏幕<br>
+        把梦想存进了待办清单<br>
+        然后标记为"未完成"<br>
+        一年又一年<br><br>
+        深夜回到出租屋<br>
+        打开这台小小的服务器<br>
+        在互联网的角落里 点一盏灯<br>
+        告诉自己<br>
+        <span class="highlight">明天 也许会好一点的</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="quote">
+        「这个世界上，有一种英雄主义，<br>
+        就是在认清了生活的真相之后，依然热爱生活。」<br>
+        <span style="font-size: 0.85em; color: #5b6178;">—— 罗曼·罗兰（以及每一个还在坚持的牛马）</span>
+      </div>
+    </div>
+
+    <footer>
+      <p>© 2026 小牛同志 · 一头不认命的牛马</p>
+      <p style="margin-top: 8px;">🌙 凌晨一点半写完的页面 · 明天还要上班</p>
+      <p style="margin-top: 8px; font-size: 0.8em; color: #374151;">Developers' lives matter.</p>
+    </footer>
+  </div>
+
+  <script>
+    function updateClock() {
+      var now = new Date();
+      var h = String(now.getHours()).padStart(2, '0');
+      var m = String(now.getMinutes()).padStart(2, '0');
+      var s = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('clock').textContent = h + ':' + m + ':' + s;
+
+      var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+      var y = now.getFullYear();
+      var mon = now.getMonth() + 1;
+      var d = now.getDate();
+      var w = weekdays[now.getDay()];
+      document.getElementById('date').textContent = y + ' 年 ' + mon + ' 月 ' + d + ' 日  星期' + w;
+
+      var hour = now.getHours();
+      var day = now.getDay();
+      var hint = document.getElementById('workHint');
+      if (day >= 1 && day <= 5) {
+        if (hour < 9) hint.textContent = '⏰ 还没到上班时间...再睡会儿吧（不，起来挤地铁了）';
+        else if (hour < 12) hint.textContent = '💻 上午搬砖中...距离午饭还有 ' + (12 - hour) + ' 小时';
+        else if (hour < 13) hint.textContent = '🍱 午休时间！一天中最幸福的一小时';
+        else if (hour < 18) hint.textContent = '😮‍💨 下午继续搬砖...脖子好酸';
+        else if (hour < 21) hint.textContent = '🫠 已过下班时间，但你还在工位上（当然）';
+        else if (hour < 23) hint.textContent = '🌙 还没到家吗？快了快了...';
+        else hint.textContent = '🛏️ 报复性熬夜中——不想睡，因为睡了就是明天';
+      } else if (day === 6) {
+        hint.textContent = '📅 周六"自愿"加班中...';
+      } else {
+        hint.textContent = '🎉 周日！唯一的休息日，请好好珍惜';
+      }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    // 计算今年工作天数和加班时长
+    var now = new Date();
+    var start = new Date(now.getFullYear(), 0, 1);
+    var diffDays = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+    var workDays = 0;
+    for (var i = 0; i < diffDays; i++) {
+      var d = new Date(start);
+      d.setDate(d.getDate() + i);
+      var day = d.getDay();
+      if (day >= 1 && day <= 6) workDays++;
+    }
+    document.getElementById('workDays').textContent = workDays;
+    document.getElementById('workHours').textContent = workDays * 3 + '+';
+  </script>
+</body>
+</html>
